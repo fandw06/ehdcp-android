@@ -49,7 +49,7 @@ public class BLEUtil {
     private static final String TAG = "BLE_UTIL";
 
     IntervalStat ecgStat = new IntervalStat("ECG", 500);
-    IntervalStat accelStat = new IntervalStat("Acc", 500);
+    IntervalStat accelStat = new IntervalStat("Acc", 50);
     public boolean isTesting = false;
 
     private Queue<BluetoothGattDescriptor> descQueue = new LinkedList<>();
