@@ -25,7 +25,6 @@ public class DisplayActivity extends AppCompatActivity {
 
     // Components
     public Button bScan;
-    public Button bStart;
     public Button bStream;
     public TextView tInfo;
 
@@ -61,24 +60,22 @@ public class DisplayActivity extends AppCompatActivity {
             }
         });
 
-        bStart = (Button) this.findViewById(R.id.start);
-        bStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ble.startReading();
-            }
-        });
-
         bStream = (Button) this.findViewById(R.id.stream);
         bStream.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (isStreaming) {
                     isStreaming = false;
+                    ble.stopStreaming();
+                    accelPlot.redrawer.pause();
+                    ecgPlot.redrawer.pause();
                     bStream.setText("Stream");
                 }
                 else {
                     isStreaming = true;
+                    ble.startStreaming();
+                    accelPlot.redrawer.start();
+                    ecgPlot.redrawer.start();
                     bStream.setText("Stop");
                 }
             }
@@ -107,7 +104,7 @@ public class DisplayActivity extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, "Location permission is granted.");
                 } else {
-                    Toast.makeText(getApplicationContext(), "Location permission is denied.", Toast.LENGTH_LONG);
+                    Toast.makeText(getApplicationContext(), "Location permission is denied.", Toast.LENGTH_LONG).show();
                     Log.d(TAG, "Location permissions is denied!");
                 }
                 break;

@@ -18,7 +18,9 @@ import android.os.Handler;
 import android.util.Log;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
 
 /**
@@ -41,9 +43,12 @@ public class BLEUtil {
     private final static String UUID_CONTROL_CHAR = "00000000-0000-0000-0000-000000000001";
     private final static String UUID_ACCEL_CHAR = "00000000-0000-0000-0000-000000000002";
     private final static String UUID_ECG_CHAR = "00000000-0000-0000-0000-000000000003";
+    private final static String DESC_CLIENT_CHAR = "00002902-0000-1000-8000-00805f9b34fb";
 
     private static final int REQUEST_BLE = 0x07;
     private static final String TAG = "BLE_UTIL";
+
+    private Queue<BluetoothGattDescriptor> descQueue = new LinkedList<>();
 
     public BLEUtil(DisplayActivity hostActivity) {
         this.hostActivity = hostActivity;
@@ -91,6 +96,7 @@ public class BLEUtil {
                 @Override
                 public void run() {
                     hostActivity.tInfo.setText("Failed to discover ASSIST device.");
+                    hostActivity.bScan.setEnabled(true);
                 }
             });
             Log.d("Scan Failed", "Error Code: " + errorCode);
@@ -108,6 +114,7 @@ public class BLEUtil {
                         @Override
                         public void run() {
                             hostActivity.tInfo.setText("Connected to ASSIST device.");
+                            hostActivity.bScan.setEnabled(false);
                         }
                     });
                     gatt.discoverServices();
@@ -118,6 +125,7 @@ public class BLEUtil {
                         @Override
                         public void run() {
                             hostActivity.tInfo.setText("ASSIST device is disconnected.");
+                            hostActivity.bScan.setEnabled(true);
                         }
                     });
                     break;
@@ -157,9 +165,12 @@ public class BLEUtil {
                         // Listen for notifications.
                         mGatt.setCharacteristicNotification(c, true);
                         BluetoothGattDescriptor descriptor = c.getDescriptor(
-                                UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
+                                UUID.fromString(DESC_CLIENT_CHAR));
                         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                        mGatt.writeDescriptor(descriptor);
+                        descQueue.add(descriptor);
+                        if (descQueue.size() == 1)
+                            mGatt.writeDescriptor(descriptor);
+
                     }
                     else if (c.getUuid().toString().equals(UUID_ECG_CHAR)) {
                         ecgChar = c;
@@ -168,9 +179,11 @@ public class BLEUtil {
                         // Listen for notifications.
                         mGatt.setCharacteristicNotification(c, true);
                         BluetoothGattDescriptor descriptor = c.getDescriptor(
-                                UUID.fromString("00002901-0000-1000-8000-00805f9b34fb"));
+                                UUID.fromString(DESC_CLIENT_CHAR));
                         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                        mGatt.writeDescriptor(descriptor);
+                        descQueue.add(descriptor);
+                        if (descQueue.size() == 1)
+                            mGatt.writeDescriptor(descriptor);
                     }
                 }
             }
@@ -189,11 +202,23 @@ public class BLEUtil {
         }
 
         @Override
+        public void onDescriptorWrite (BluetoothGatt gatt,
+                                       BluetoothGattDescriptor descriptor,
+                                       int status) {
+            Log.d(TAG, "Descriptor is written successfully!");
+            Log.d(TAG, "Char: " + descriptor.getCharacteristic().getUuid().toString());
+            descQueue.remove();
+            if (!descQueue.isEmpty()) {
+                mGatt.writeDescriptor(descQueue.peek());
+            }
+        }
+
+        @Override
         public void onCharacteristicChanged (BluetoothGatt gatt,
                                              BluetoothGattCharacteristic characteristic) {
-            Log.d(TAG, "Chars changed!");
+
             byte[] value = characteristic.getValue();
-            Log.d(TAG, Arrays.toString(value));
+         //   Log.d(TAG, "Chars changed! " + Arrays.toString(value));
 
             if (characteristic.getUuid().toString().equals(UUID_ACCEL_CHAR)) {
                 if (hostActivity.isStreaming) {
@@ -234,13 +259,25 @@ public class BLEUtil {
         }
     }
 
-    public void startReading() {
+    public void startStreaming() {
         if (controlChar != null) {
             byte value[] = new byte[1];
             value[0] = 1;
             controlChar.setValue(value);
             if (mGatt.writeCharacteristic(controlChar))
                 Log.d(TAG, "Write 1 to control point to start reading.");
+            else
+                Log.d(TAG, "Write failed!");
+        }
+    }
+
+    public void stopStreaming() {
+        if (controlChar != null) {
+            byte value[] = new byte[1];
+            value[0] = 0;
+            controlChar.setValue(value);
+            if (mGatt.writeCharacteristic(controlChar))
+                Log.d(TAG, "Write 0 to control point to stop reading.");
             else
                 Log.d(TAG, "Write failed!");
         }
