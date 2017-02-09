@@ -48,10 +48,6 @@ public class BLEUtil {
     private static final int REQUEST_BLE = 0x07;
     private static final String TAG = "BLE_UTIL";
 
-    IntervalStat ecgStat = new IntervalStat("ECG", 500);
-    IntervalStat accelStat = new IntervalStat("Acc", 50);
-    public boolean isTesting = false;
-
     private Queue<BluetoothGattDescriptor> descQueue = new LinkedList<>();
 
     public BLEUtil(DisplayActivity hostActivity) {
@@ -225,16 +221,12 @@ public class BLEUtil {
          //   Log.d(TAG, "Chars changed! " + Arrays.toString(value));
 
             if (characteristic.getUuid().toString().equals(UUID_ACCEL_CHAR)) {
-                if (isTesting)
-                    accelStat.update(System.currentTimeMillis());
                 if (hostActivity.isStreaming) {
                     hostActivity.accelPlot.updateData(value);
                 }
 
             }
             else if (characteristic.getUuid().toString().equals(UUID_ECG_CHAR)) {
-                if (isTesting)
-                    ecgStat.update(System.currentTimeMillis());
                 if (hostActivity.isStreaming) {
                     hostActivity.ecgPlot.updateData(value);
                 }

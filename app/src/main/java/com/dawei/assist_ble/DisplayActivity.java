@@ -26,7 +26,6 @@ public class DisplayActivity extends AppCompatActivity {
     public Button bScan;
     public Button bStream;
     public TextView tInfo;
-    public Button bTestIntv;
 
     // status
     public boolean isStreaming = false;
@@ -77,22 +76,6 @@ public class DisplayActivity extends AppCompatActivity {
                     accelPlot.redrawer.start();
                     ecgPlot.redrawer.start();
                     bStream.setText("Stop");
-                }
-            }
-        });
-
-
-        bTestIntv = (Button) this.findViewById(R.id.test_interval);
-        bTestIntv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (ble.isTesting) {
-                    ble.isTesting = false;
-                    bTestIntv.setText("Stop");
-                }
-                else {
-                    ble.isTesting = true;
-                    bTestIntv.setText("Test");
                 }
             }
         });
