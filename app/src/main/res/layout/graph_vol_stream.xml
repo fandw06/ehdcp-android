@@ -7,7 +7,7 @@
 
     <com.androidplot.xy.XYPlot
         style="@style/APDefacto.Dark"
-        android:id="@+id/plot_ecg"
+        android:id="@+id/plot_vol"
         android:background="#ffffffff"
         android:layout_width="fill_parent"
         android:layout_height="280dip"
@@ -15,7 +15,7 @@
         android:layout_marginTop="1.0dip"
         android:layout_marginRight="1.0dip"
 
-        ap:title="ECG"
+        ap:title="Voltage"
         ap:titleTextSize="15dp"
         ap:domainTitle="Time"
         ap:domainTitleTextSize="10dp"

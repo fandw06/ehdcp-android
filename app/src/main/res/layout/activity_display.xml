@@ -60,6 +60,7 @@
 
             <include layout="@layout/graph_accel_stream"/>
             <include layout="@layout/graph_ecg_stream"/>
+            <include layout="@layout/graph_vol_stream"/>
         </LinearLayout>
 
     </ScrollView>

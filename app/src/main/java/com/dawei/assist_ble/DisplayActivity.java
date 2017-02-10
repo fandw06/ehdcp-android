@@ -21,6 +21,7 @@ public class DisplayActivity extends AppCompatActivity {
     public BLEUtil ble;
     public AccelPlot accelPlot;
     public ECGPlot ecgPlot;
+    public VolPlot volPlot;
 
     // Components
     public Button bScan;
@@ -41,6 +42,7 @@ public class DisplayActivity extends AppCompatActivity {
         ble = new BLEUtil(this);
         accelPlot = new AccelPlot(this);
         ecgPlot = new ECGPlot(this);
+        volPlot = new VolPlot(this);
     }
 
 

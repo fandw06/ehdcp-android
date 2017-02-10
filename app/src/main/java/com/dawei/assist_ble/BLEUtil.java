@@ -36,6 +36,7 @@ public class BLEUtil {
     private BluetoothGattCharacteristic controlChar;
     private BluetoothGattCharacteristic accelChar;
     private BluetoothGattCharacteristic ecgChar;
+    private BluetoothGattCharacteristic volChar;
     private boolean mScanning = false;
     private static final long SCAN_PERIOD = 10000;
 
@@ -43,6 +44,7 @@ public class BLEUtil {
     private final static String UUID_CONTROL_CHAR = "00000000-0000-0000-0000-000000000001";
     private final static String UUID_ACCEL_CHAR = "00000000-0000-0000-0000-000000000002";
     private final static String UUID_ECG_CHAR = "00000000-0000-0000-0000-000000000003";
+    private final static String UUID_VOL_CHAR = "00000000-0000-0000-0000-000000000004";
     private final static String DESC_CLIENT_CHAR = "00002902-0000-1000-8000-00805f9b34fb";
 
     private static final int REQUEST_BLE = 0x07;
@@ -170,11 +172,23 @@ public class BLEUtil {
                         descQueue.add(descriptor);
                         if (descQueue.size() == 1)
                             mGatt.writeDescriptor(descriptor);
-
                     }
                     else if (c.getUuid().toString().equals(UUID_ECG_CHAR)) {
                         ecgChar = c;
                         Log.d(TAG, "Found ecg service.");
+
+                        // Listen for notifications.
+                        mGatt.setCharacteristicNotification(c, true);
+                        BluetoothGattDescriptor descriptor = c.getDescriptor(
+                                UUID.fromString(DESC_CLIENT_CHAR));
+                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                        descQueue.add(descriptor);
+                        if (descQueue.size() == 1)
+                            mGatt.writeDescriptor(descriptor);
+                    }
+                    else if (c.getUuid().toString().equals(UUID_VOL_CHAR)) {
+                        volChar = c;
+                        Log.d(TAG, "Found vol service.");
 
                         // Listen for notifications.
                         mGatt.setCharacteristicNotification(c, true);
@@ -224,11 +238,15 @@ public class BLEUtil {
                 if (hostActivity.isStreaming) {
                     hostActivity.accelPlot.updateData(value);
                 }
-
             }
             else if (characteristic.getUuid().toString().equals(UUID_ECG_CHAR)) {
                 if (hostActivity.isStreaming) {
                     hostActivity.ecgPlot.updateData(value);
+                }
+            }
+            else if (characteristic.getUuid().toString().equals(UUID_VOL_CHAR)) {
+                if (hostActivity.isStreaming) {
+                    hostActivity.volPlot.updateData(value);
                 }
             }
         }
