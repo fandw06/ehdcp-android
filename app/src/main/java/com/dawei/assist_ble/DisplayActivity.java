@@ -10,8 +10,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.influxdb.InfluxDB;
+import org.influxdb.InfluxDBFactory;
+import org.influxdb.dto.Point;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class DisplayActivity extends AppCompatActivity {
 
@@ -27,9 +36,14 @@ public class DisplayActivity extends AppCompatActivity {
     public Button bScan;
     public Button bStream;
     public TextView tInfo;
+    public CheckBox cbCloud;
 
     // status
     public boolean isStreaming = false;
+    public boolean enabledInfluxDB = false;
+    private static String serverIP = "128.143.24.101";
+    private String dbName = "DEFAULT";
+    private InfluxDB influxDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +57,9 @@ public class DisplayActivity extends AppCompatActivity {
         accelPlot = new AccelPlot(this);
         ecgPlot = new ECGPlot(this);
         volPlot = new VolPlot(this);
+
+        //influxDB = InfluxDBFactory.connect("http://" + serverIP +":8086", "root", "root");
+        influxDB = null;
     }
 
 
@@ -81,6 +98,21 @@ public class DisplayActivity extends AppCompatActivity {
                 }
             }
         });
+
+        cbCloud = (CheckBox) this.findViewById(R.id.cb_cloud);
+        cbCloud.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                if (cbCloud.isChecked()) {
+                    enabledInfluxDB = false;
+                }
+                else {
+                    enabledInfluxDB = true;
+                }
+            }
+        });
+
         tInfo = (TextView) this.findViewById(R.id.txt_info);
     }
 
@@ -113,5 +145,23 @@ public class DisplayActivity extends AppCompatActivity {
             default:
                 Log.d(TAG, "Invalid permission request code.");
         }
+    }
+
+    public void writeInfluxDB(final String name, final byte data[]) {
+        new Thread(new Runnable() {
+
+            public void run() {
+                Map<String, Object> fields = new HashMap<>();
+                for (int i = 0; i< data.length; i++) {
+                    fields.put("ch" + i, data[i]);
+                }
+                Point point = Point.measurement(name)
+                        .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                        .fields(fields)
+                        .build();
+                influxDB.write("collector", "autogen", point);
+            }
+        }).start();
+
     }
 }

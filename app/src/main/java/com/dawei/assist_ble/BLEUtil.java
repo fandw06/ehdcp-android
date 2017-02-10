@@ -238,15 +238,24 @@ public class BLEUtil {
                 if (hostActivity.isStreaming) {
                     hostActivity.accelPlot.updateData(value);
                 }
+                if (hostActivity.enabledInfluxDB) {
+                    hostActivity.writeInfluxDB("ACCEL", value);
+                }
             }
             else if (characteristic.getUuid().toString().equals(UUID_ECG_CHAR)) {
                 if (hostActivity.isStreaming) {
                     hostActivity.ecgPlot.updateData(value);
                 }
+                if (hostActivity.enabledInfluxDB) {
+                    hostActivity.writeInfluxDB("ECG", value);
+                }
             }
             else if (characteristic.getUuid().toString().equals(UUID_VOL_CHAR)) {
                 if (hostActivity.isStreaming) {
                     hostActivity.volPlot.updateData(value);
+                }
+                if (hostActivity.enabledInfluxDB) {
+                    hostActivity.writeInfluxDB("VOL", value);
                 }
             }
         }
