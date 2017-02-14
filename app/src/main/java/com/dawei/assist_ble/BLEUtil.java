@@ -232,9 +232,9 @@ public class BLEUtil {
                                              BluetoothGattCharacteristic characteristic) {
 
             byte[] value = characteristic.getValue();
-         //   Log.d(TAG, "Chars changed! " + Arrays.toString(value));
 
             if (characteristic.getUuid().toString().equals(UUID_ACCEL_CHAR)) {
+                Log.d(TAG, "Accel chars changed! " + Arrays.toString(value));
                 if (hostActivity.isStreaming) {
                     hostActivity.accelPlot.updateData(value);
                 }
@@ -243,6 +243,7 @@ public class BLEUtil {
                 }
             }
             else if (characteristic.getUuid().toString().equals(UUID_ECG_CHAR)) {
+                Log.d(TAG, "Ecg chars changed! " + Arrays.toString(value));
                 if (hostActivity.isStreaming) {
                     hostActivity.ecgPlot.updateData(value);
                 }
@@ -251,6 +252,7 @@ public class BLEUtil {
                 }
             }
             else if (characteristic.getUuid().toString().equals(UUID_VOL_CHAR)) {
+                Log.d(TAG, "Vol chars changed! " + Arrays.toString(value));
                 if (hostActivity.isStreaming) {
                     hostActivity.volPlot.updateData(value);
                 }
