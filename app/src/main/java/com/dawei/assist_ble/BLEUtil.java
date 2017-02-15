@@ -232,11 +232,10 @@ public class BLEUtil {
                                              BluetoothGattCharacteristic characteristic) {
 
             byte[] value = characteristic.getValue();
-
             if (characteristic.getUuid().toString().equals(UUID_ACCEL_CHAR)) {
                 Log.d(TAG, "Accel chars changed! " + Arrays.toString(value));
                 if (hostActivity.isStreaming) {
-                    hostActivity.accelPlot.updateData(value);
+                    hostActivity.accelPlot.updateDataSeries(Arrays.copyOfRange(value, 0, 18));
                 }
                 if (hostActivity.enabledInfluxDB) {
                     hostActivity.writeInfluxDB("ACCEL", value);
@@ -245,7 +244,7 @@ public class BLEUtil {
             else if (characteristic.getUuid().toString().equals(UUID_ECG_CHAR)) {
                 Log.d(TAG, "Ecg chars changed! " + Arrays.toString(value));
                 if (hostActivity.isStreaming) {
-                    hostActivity.ecgPlot.updateData(value);
+                    hostActivity.ecgPlot.updateDataSeries(value);
                 }
                 if (hostActivity.enabledInfluxDB) {
                     hostActivity.writeInfluxDB("ECG", value);
@@ -254,7 +253,7 @@ public class BLEUtil {
             else if (characteristic.getUuid().toString().equals(UUID_VOL_CHAR)) {
                 Log.d(TAG, "Vol chars changed! " + Arrays.toString(value));
                 if (hostActivity.isStreaming) {
-                    hostActivity.volPlot.updateData(value);
+                    hostActivity.volPlot.updateDataSeries(value);
                 }
                 if (hostActivity.enabledInfluxDB) {
                     hostActivity.writeInfluxDB("VOL", value);
@@ -295,7 +294,7 @@ public class BLEUtil {
             value[0] = 1;
             controlChar.setValue(value);
             if (mGatt.writeCharacteristic(controlChar))
-                Log.d(TAG, "Write 1 to control point to start reading.");
+                Log.d(TAG, "Start reading data.");
             else
                 Log.d(TAG, "Write failed!");
         }
@@ -307,7 +306,7 @@ public class BLEUtil {
             value[0] = 0;
             controlChar.setValue(value);
             if (mGatt.writeCharacteristic(controlChar))
-                Log.d(TAG, "Write 0 to control point to stop reading.");
+                Log.d(TAG, "Stop reading data.");
             else
                 Log.d(TAG, "Write failed!");
         }

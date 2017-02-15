@@ -14,6 +14,11 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dawei.assist_ble.plot.CalibrateADC;
+import com.dawei.assist_ble.plot.CalibrateAccel;
+import com.dawei.assist_ble.plot.DataPlot;
+import com.dawei.assist_ble.plot.PlotConfig;
+
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
@@ -28,9 +33,10 @@ public class DisplayActivity extends AppCompatActivity {
     /** Location permission is required when scan BLE devices.*/
     private static final int REQUEST_LOCATION = 0x03;
     public BLEUtil ble;
-    public AccelPlot accelPlot;
-    public ECGPlot ecgPlot;
-    public VolPlot volPlot;
+
+    public DataPlot accelPlot;
+    public DataPlot ecgPlot;
+    public DataPlot volPlot;
 
     // Components
     public Button bScan;
@@ -52,16 +58,58 @@ public class DisplayActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             verifyLocationPermissions();
         }
-        initializeComponents();
-        ble = new BLEUtil(this);
-        accelPlot = new AccelPlot(this);
-        ecgPlot = new ECGPlot(this);
-        volPlot = new VolPlot(this);
 
+        ble = new BLEUtil(this);
         //influxDB = InfluxDBFactory.connect("http://" + serverIP +":8086", "root", "root");
+        initializePlot();
+        initializeComponents();
         influxDB = null;
     }
 
+    private void initializePlot() {
+
+        PlotConfig ecgConfig = PlotConfig.builder()
+                .setBytesPerSample(2)
+                .setName(new String[]{"ecg"})
+                .setNumOfSeries(1)
+                .setResID(R.id.plot_ecg)
+                .setXmlID(new int[]{R.xml.ecg_line_point_formatter})
+                .setRedrawFreq(30)
+                .setDomainBoundary(new double[]{0, 400})
+                .setDomainInc(50.0)
+                .setRangeBoundary(new double[]{0, 3.0})
+                .setRangeInc(0.5)
+                .build();
+        ecgPlot = new DataPlot(this, ecgConfig, new CalibrateADC());
+
+        PlotConfig volConfig = PlotConfig.builder()
+                .setBytesPerSample(2)
+                .setName(new String[]{"vol"})
+                .setNumOfSeries(1)
+                .setResID(R.id.plot_vol)
+                .setXmlID(new int[]{R.xml.vol_line_point_formatter})
+                .setRedrawFreq(30)
+                .setDomainBoundary(new double[]{0, 400})
+                .setDomainInc(50.0)
+                .setRangeBoundary(new double[]{0, 3.0})
+                .setRangeInc(0.5)
+                .build();
+        volPlot = new DataPlot(this, volConfig, new CalibrateADC());
+
+        PlotConfig accelConfig = PlotConfig.builder()
+                .setBytesPerSample(1)
+                .setName(new String[]{"x", "y", "z"})
+                .setNumOfSeries(3)
+                .setResID(R.id.plot_accel)
+                .setXmlID(new int[]{R.xml.accel_x_line_point_formatter, R.xml.accel_y_line_point_formatter, R.xml.accel_z_line_point_formatter})
+                .setRedrawFreq(30)
+                .setDomainBoundary(new double[]{0, 400})
+                .setDomainInc(50.0)
+                .setRangeBoundary(new double[]{-2.0, 2.0})
+                .setRangeInc(0.5)
+                .build();
+        accelPlot = new DataPlot(this, accelConfig, new CalibrateAccel());
+    }
 
     private void initializeComponents() {
         bScan = (Button) this.findViewById(R.id.scan);
@@ -87,6 +135,7 @@ public class DisplayActivity extends AppCompatActivity {
                     ble.stopStreaming();
                     accelPlot.redrawer.pause();
                     ecgPlot.redrawer.pause();
+                    volPlot.redrawer.pause();
                     bStream.setText("Stream");
                 }
                 else {
@@ -94,6 +143,7 @@ public class DisplayActivity extends AppCompatActivity {
                     ble.startStreaming();
                     accelPlot.redrawer.start();
                     ecgPlot.redrawer.start();
+                    volPlot.redrawer.start();
                     bStream.setText("Stop");
                 }
             }
