@@ -33,6 +33,13 @@ public class ECGPlot {
         redrawer = new Redrawer(ecgPlot, ECG_PLOT_FREQ, true);
     }
 
+    public void updateDataDep(byte[] value) {
+        if (value.length != 2)
+            return;
+        double val = calibrateECG(value);
+        updateDataSeries(ecgSeries, val, ECG_RANGE);
+    }
+
     public void updateData(byte[] value) {
         if (value.length != 2)
             return;
