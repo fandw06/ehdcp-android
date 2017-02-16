@@ -34,17 +34,13 @@ public class BLEUtil {
     private Handler mHandler;
     private BluetoothGattService gService;
     private BluetoothGattCharacteristic controlChar;
-    private BluetoothGattCharacteristic accelChar;
-    private BluetoothGattCharacteristic ecgChar;
-    private BluetoothGattCharacteristic volChar;
+    private BluetoothGattCharacteristic sensorChar;
     private boolean mScanning = false;
     private static final long SCAN_PERIOD = 10000;
 
     private final static String UUID_ASSIST_SERVICE = "edfec62e-9910-0bac-5241-d8bda6932a2f";
     private final static String UUID_CONTROL_CHAR = "00000000-0000-0000-0000-000000000001";
-    private final static String UUID_ACCEL_CHAR = "00000000-0000-0000-0000-000000000002";
-    private final static String UUID_ECG_CHAR = "00000000-0000-0000-0000-000000000003";
-    private final static String UUID_VOL_CHAR = "00000000-0000-0000-0000-000000000004";
+    private final static String UUID_SENSOR_CHAR = "00000000-0000-0000-0000-000000000002";
     private final static String DESC_CLIENT_CHAR = "00002902-0000-1000-8000-00805f9b34fb";
 
     private static final int REQUEST_BLE = 0x07;
@@ -160,35 +156,9 @@ public class BLEUtil {
                         controlChar = c;
                         Log.d(TAG, "Found a control char.");
                     }
-                    else if (c.getUuid().toString().equals(UUID_ACCEL_CHAR)) {
-                        accelChar = c;
-                        Log.d(TAG, "Found accel service.");
-
-                        // Listen for notifications.
-                        mGatt.setCharacteristicNotification(c, true);
-                        BluetoothGattDescriptor descriptor = c.getDescriptor(
-                                UUID.fromString(DESC_CLIENT_CHAR));
-                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                        descQueue.add(descriptor);
-                        if (descQueue.size() == 1)
-                            mGatt.writeDescriptor(descriptor);
-                    }
-                    else if (c.getUuid().toString().equals(UUID_ECG_CHAR)) {
-                        ecgChar = c;
-                        Log.d(TAG, "Found ecg service.");
-
-                        // Listen for notifications.
-                        mGatt.setCharacteristicNotification(c, true);
-                        BluetoothGattDescriptor descriptor = c.getDescriptor(
-                                UUID.fromString(DESC_CLIENT_CHAR));
-                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                        descQueue.add(descriptor);
-                        if (descQueue.size() == 1)
-                            mGatt.writeDescriptor(descriptor);
-                    }
-                    else if (c.getUuid().toString().equals(UUID_VOL_CHAR)) {
-                        volChar = c;
-                        Log.d(TAG, "Found vol service.");
+                    else if (c.getUuid().toString().equals(UUID_SENSOR_CHAR)) {
+                        sensorChar = c;
+                        Log.d(TAG, "Found sensor char.");
 
                         // Listen for notifications.
                         mGatt.setCharacteristicNotification(c, true);
@@ -232,31 +202,43 @@ public class BLEUtil {
                                              BluetoothGattCharacteristic characteristic) {
 
             byte[] value = characteristic.getValue();
-            if (characteristic.getUuid().toString().equals(UUID_ACCEL_CHAR)) {
-                Log.d(TAG, "Accel chars changed! " + Arrays.toString(value));
+
+            byte[] ecgData = new byte[10];
+            byte[] accelData = new byte[9];
+            byte[] volData = new byte[1];
+
+            ecgData[0] = value[0];
+            ecgData[1] = value[1];
+            ecgData[2] = value[2];
+            ecgData[3] = value[6];
+            ecgData[4] = value[7];
+            ecgData[5] = value[8];
+            ecgData[6] = value[12];
+            ecgData[7] = value[13];
+            ecgData[8] = value[14];
+            ecgData[9] = value[18];
+            accelData[0] = value[3];
+            accelData[1] = value[4];
+            accelData[2] = value[5];
+            accelData[3] = value[9];
+            accelData[4] = value[10];
+            accelData[5] = value[11];
+            accelData[6] = value[15];
+            accelData[7] = value[16];
+            accelData[8] = value[17];
+            volData[0] = value[19];
+
+            if (characteristic.getUuid().toString().equals(UUID_SENSOR_CHAR)) {
+                Log.d(TAG, "Sensor chars changed! " + Arrays.toString(accelData));
                 if (hostActivity.isStreaming) {
-                    hostActivity.accelPlot.updateDataSeries(Arrays.copyOfRange(value, 0, 18));
+                    hostActivity.accelPlot.updateDataSeries(accelData);
+                    hostActivity.ecgPlot.updateDataSeries(ecgData);
+                    hostActivity.volPlot.updateDataSeries(volData);
                 }
                 if (hostActivity.enabledInfluxDB) {
-                    hostActivity.writeInfluxDB("ACCEL", value);
-                }
-            }
-            else if (characteristic.getUuid().toString().equals(UUID_ECG_CHAR)) {
-                Log.d(TAG, "Ecg chars changed! " + Arrays.toString(value));
-                if (hostActivity.isStreaming) {
-                    hostActivity.ecgPlot.updateDataSeries(value);
-                }
-                if (hostActivity.enabledInfluxDB) {
-                    hostActivity.writeInfluxDB("ECG", value);
-                }
-            }
-            else if (characteristic.getUuid().toString().equals(UUID_VOL_CHAR)) {
-                Log.d(TAG, "Vol chars changed! " + Arrays.toString(value));
-                if (hostActivity.isStreaming) {
-                    hostActivity.volPlot.updateDataSeries(value);
-                }
-                if (hostActivity.enabledInfluxDB) {
-                    hostActivity.writeInfluxDB("VOL", value);
+                    hostActivity.writeInfluxDB("ACCEL", accelData);
+                    hostActivity.writeInfluxDB("ECG", ecgData);
+                    hostActivity.writeInfluxDB("VOL", volData);
                 }
             }
         }

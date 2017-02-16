@@ -69,7 +69,7 @@ public class DisplayActivity extends AppCompatActivity {
     private void initializePlot() {
 
         PlotConfig ecgConfig = PlotConfig.builder()
-                .setBytesPerSample(2)
+                .setBytesPerSample(1)
                 .setName(new String[]{"ecg"})
                 .setNumOfSeries(1)
                 .setResID(R.id.plot_ecg)
@@ -83,7 +83,7 @@ public class DisplayActivity extends AppCompatActivity {
         ecgPlot = new DataPlot(this, ecgConfig, new CalibrateADC());
 
         PlotConfig volConfig = PlotConfig.builder()
-                .setBytesPerSample(2)
+                .setBytesPerSample(1)
                 .setName(new String[]{"vol"})
                 .setNumOfSeries(1)
                 .setResID(R.id.plot_vol)
