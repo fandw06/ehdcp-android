@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.dawei.assist_ble"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -25,6 +25,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile "com.androidplot:androidplot-core:1.4.1"
     // https://mvnrepository.com/artifact/org.influxdb/influxdb-java
-    compile group: 'org.influxdb', name: 'influxdb-java', version: '2.5'
+    compile group: 'org.influxdb', name: 'influxdb-java', version: '2.3'
 
 }

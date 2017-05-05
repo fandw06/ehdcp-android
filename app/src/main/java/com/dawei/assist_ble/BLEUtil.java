@@ -37,8 +37,13 @@ public class BLEUtil {
     private BluetoothGattCharacteristic sensorChar;
     private boolean mScanning = false;
     private static final long SCAN_PERIOD = 10000;
+    public enum DEMO {SOLAR, STRING, TEG};
 
-    private final static String UUID_ASSIST_SERVICE = "edfec62e-9910-0bac-5241-d8bda6932a2f";
+
+    private final static String UUID_SOLAR = "edfec62e-9910-0bac-5241-d8bda6932a2f";
+    private final static String UUID_STRING = "edfec62e-9910-0bac-5241-d8bda6932a2e";
+    private final static String UUID_TEG = "edfec62e-9910-0bac-5241-d8bda6932a2d";
+    private String UUID_ASSIST_SERVICE;
     private final static String UUID_CONTROL_CHAR = "00000000-0000-0000-0000-000000000001";
     private final static String UUID_SENSOR_CHAR = "00000000-0000-0000-0000-000000000002";
     private final static String DESC_CLIENT_CHAR = "00002902-0000-1000-8000-00805f9b34fb";
@@ -229,16 +234,17 @@ public class BLEUtil {
             volData[0] = value[19];
 
             if (characteristic.getUuid().toString().equals(UUID_SENSOR_CHAR)) {
-                Log.d(TAG, "Sensor chars changed! " + Arrays.toString(accelData));
+                Log.d(TAG, "Accel chars changed! " + Arrays.toString(accelData));
+                Log.d(TAG, "ECG chars changed! " + Arrays.toString(ecgData));
+                Log.d(TAG, "Vol chars changed! " + Arrays.toString(volData));
                 if (hostActivity.isStreaming) {
                     hostActivity.accelPlot.updateDataSeries(accelData);
                     hostActivity.ecgPlot.updateDataSeries(ecgData);
                     hostActivity.volPlot.updateDataSeries(volData);
                 }
-                if (hostActivity.enabledInfluxDB) {
-                    hostActivity.writeInfluxDB("ACCEL", accelData);
-                    hostActivity.writeInfluxDB("ECG", ecgData);
-                    hostActivity.writeInfluxDB("VOL", volData);
+                if (hostActivity.enabledInfluxDB && hostActivity.influxDB != null) {
+                    Log.d(TAG, "Prepare to write to InfluxDB...");
+                    hostActivity.uploadCloud(accelData, ecgData, volData);
                 }
             }
         }
@@ -291,6 +297,22 @@ public class BLEUtil {
                 Log.d(TAG, "Stop reading data.");
             else
                 Log.d(TAG, "Write failed!");
+        }
+    }
+
+    public void setDemoType(DEMO d) {
+        switch (d) {
+            case SOLAR:
+                this.UUID_ASSIST_SERVICE = UUID_SOLAR;
+                break;
+            case STRING:
+                this.UUID_ASSIST_SERVICE = UUID_STRING;
+                break;
+            case TEG:
+                this.UUID_ASSIST_SERVICE = UUID_TEG;
+                break;
+            default:
+                this.UUID_ASSIST_SERVICE = "UNDEFINED";
         }
     }
 

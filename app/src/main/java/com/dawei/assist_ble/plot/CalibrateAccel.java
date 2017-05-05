@@ -12,4 +12,8 @@ public class CalibrateAccel implements Calibrate {
     public double calibrate(byte[] rawData) {
         return (double)rawData[0] * FULL_SCALE * 2/NUMBER_OF_LEVELS;
     }
+
+    public double calibrate(byte rawData) {
+        return (double)rawData * FULL_SCALE * 2/NUMBER_OF_LEVELS;
+    }
 }
