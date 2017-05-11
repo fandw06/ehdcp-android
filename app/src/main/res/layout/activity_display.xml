@@ -30,7 +30,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Select demo type"
+                    android:text="Demo type"
                     android:textColor="@color/white"
                     android:layout_alignParentTop="true"
                     android:layout_alignParentStart="true"
@@ -39,7 +39,7 @@
                 <RadioGroup android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:paddingRight="5dp"
+                    android:paddingRight="3dp"
                     android:id="@+id/r_group">
 
                     <RadioButton
@@ -57,6 +57,14 @@
                         android:textColor="@color/white"
                         android:theme="@style/MyRadioButton"
                         android:id="@+id/r_string" />
+
+                    <RadioButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TEG"
+                        android:textColor="@color/white"
+                        android:theme="@style/MyRadioButton"
+                        android:id="@+id/r_teg" />
                 </RadioGroup>
                 <CheckBox
                     android:layout_width="90dp"
@@ -100,6 +108,29 @@
             <include layout="@layout/graph_accel_stream"/>
             <include layout="@layout/graph_ecg_stream"/>
             <include layout="@layout/graph_vol_stream"/>
+
+            <RadioGroup android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingRight="3dp"
+                android:id="@+id/r_cloud">
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Amazon server"
+                    android:textColor="@color/white"
+                    android:theme="@style/MyRadioButton"
+                    android:id="@+id/r_amazon" />
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lab server"
+                    android:textColor="@color/white"
+                    android:theme="@style/MyRadioButton"
+                    android:id="@+id/r_lab" />
+            </RadioGroup>
         </LinearLayout>
 
     </ScrollView>

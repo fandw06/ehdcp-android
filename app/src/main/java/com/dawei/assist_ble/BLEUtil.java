@@ -17,6 +17,8 @@ import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 
+import com.dawei.assist_ble.parser.Parser;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,16 +39,19 @@ public class BLEUtil {
     private BluetoothGattCharacteristic sensorChar;
     private boolean mScanning = false;
     private static final long SCAN_PERIOD = 10000;
-    public enum DEMO {SOLAR, STRING, TEG};
+    public enum DEMO {SOLAR, STRING, TEG}
+    public Parser parser;
 
-
-    private final static String UUID_SOLAR = "edfec62e-9910-0bac-5241-d8bda6932a2f";
-    private final static String UUID_STRING = "edfec62e-9910-0bac-5241-d8bda6932a2e";
-    private final static String UUID_TEG = "edfec62e-9910-0bac-5241-d8bda6932a2d";
-    private String UUID_ASSIST_SERVICE;
+    private final static String UUID_ASSIST_SERVICE = "edfec62e-9910-0bac-5241-d8bda6932a2f";
     private final static String UUID_CONTROL_CHAR = "00000000-0000-0000-0000-000000000001";
     private final static String UUID_SENSOR_CHAR = "00000000-0000-0000-0000-000000000002";
     private final static String DESC_CLIENT_CHAR = "00002902-0000-1000-8000-00805f9b34fb";
+
+    private final static String NAME_DEMO_SOLAR = "ASSIST Solar";
+    private final static String NAME_DEMO_STRING = "ASSIST String";
+    private final static String NAME_DEMO_TEG = "ASSIST TEG";
+    private String DEVICE_NAME;
+
 
     private static final int REQUEST_BLE = 0x07;
     private static final String TAG = "BLE_UTIL";
@@ -72,7 +77,7 @@ public class BLEUtil {
             super.onScanResult(callbackType, result);
             BluetoothDevice btDevice = result.getDevice();
             Log.d(TAG, btDevice.getName() + "\n" + btDevice.getAddress());
-            if (btDevice.getName() != null && btDevice.getName().equals("ASSIST Data")) {
+            if (btDevice.getName() != null && btDevice.getName().equals(DEVICE_NAME)) {
                 hostActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -207,31 +212,9 @@ public class BLEUtil {
                                              BluetoothGattCharacteristic characteristic) {
 
             byte[] value = characteristic.getValue();
-
-            byte[] ecgData = new byte[10];
-            byte[] accelData = new byte[9];
-            byte[] volData = new byte[1];
-
-            ecgData[0] = value[0];
-            ecgData[1] = value[1];
-            ecgData[2] = value[2];
-            ecgData[3] = value[6];
-            ecgData[4] = value[7];
-            ecgData[5] = value[8];
-            ecgData[6] = value[12];
-            ecgData[7] = value[13];
-            ecgData[8] = value[14];
-            ecgData[9] = value[18];
-            accelData[0] = value[3];
-            accelData[1] = value[4];
-            accelData[2] = value[5];
-            accelData[3] = value[9];
-            accelData[4] = value[10];
-            accelData[5] = value[11];
-            accelData[6] = value[15];
-            accelData[7] = value[16];
-            accelData[8] = value[17];
-            volData[0] = value[19];
+            byte[] ecgData = parser.getEcgBytes(value);
+            byte[] accelData = parser.getAccelBytes(value);
+            byte[] volData = parser.getVolBytes(value);
 
             if (characteristic.getUuid().toString().equals(UUID_SENSOR_CHAR)) {
                 Log.d(TAG, "Accel chars changed! " + Arrays.toString(accelData));
@@ -303,16 +286,16 @@ public class BLEUtil {
     public void setDemoType(DEMO d) {
         switch (d) {
             case SOLAR:
-                this.UUID_ASSIST_SERVICE = UUID_SOLAR;
+                this.DEVICE_NAME= NAME_DEMO_SOLAR;
                 break;
             case STRING:
-                this.UUID_ASSIST_SERVICE = UUID_STRING;
+                this.DEVICE_NAME= NAME_DEMO_STRING;
                 break;
             case TEG:
-                this.UUID_ASSIST_SERVICE = UUID_TEG;
+                this.DEVICE_NAME= NAME_DEMO_TEG;
                 break;
             default:
-                this.UUID_ASSIST_SERVICE = "UNDEFINED";
+                this.DEVICE_NAME= "UNDEFINED";
         }
     }
 

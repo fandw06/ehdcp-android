@@ -15,6 +15,8 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dawei.assist_ble.parser.Ratio0_1_0;
+import com.dawei.assist_ble.parser.Ratio10_3_1;
 import com.dawei.assist_ble.plot.CalibrateADC;
 import com.dawei.assist_ble.plot.CalibrateAccel;
 import com.dawei.assist_ble.plot.DataPlot;
@@ -51,11 +53,21 @@ public class DisplayActivity extends AppCompatActivity {
     public CheckBox cbCloud;
     public RadioButton rbSolar;
     public RadioButton rbString;
+    public RadioButton rbTEG;
+
+    public RadioButton rbAmazon;
+    public RadioButton rbLab;
 
     // status
     public boolean isStreaming = false;
     public boolean enabledInfluxDB = false;
-    private static String serverIP = "128.143.74.10";
+
+    private String serverIP = LAB_IP;
+    // Lab PC IP
+    private static final String LAB_IP = "128.143.74.10";
+    // Amazon cloud IP
+    private static final String AMAZON_IP = "34.207.78.17";
+
     private String dbName = "assist";
     public InfluxDB influxDB;
 
@@ -85,7 +97,7 @@ public class DisplayActivity extends AppCompatActivity {
                 .setXmlID(new int[]{R.xml.ecg_line_point_formatter})
                 .setRedrawFreq(30)
                 .setDomainBoundary(new double[]{0, 200})
-                .setDomainInc(40.0)
+                .setDomainInc(50.0)
                 .setRangeBoundary(new double[]{0, 1.0})
                 .setRangeInc(0.2)
                 .build();
@@ -188,6 +200,7 @@ public class DisplayActivity extends AppCompatActivity {
             public void onClick(View view) {
                 ble.setDemoType(BLEUtil.DEMO.SOLAR);
                 cbCloud.setEnabled(true);
+                ble.parser = new Ratio10_3_1();
             }
         });
 
@@ -196,8 +209,37 @@ public class DisplayActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 ble.setDemoType(BLEUtil.DEMO.STRING);
+                ble.parser = new Ratio10_3_1();
                 cbCloud.setChecked(false);
                 cbCloud.setEnabled(false);
+            }
+        });
+
+        rbTEG = (RadioButton) this.findViewById(R.id.r_teg);
+        rbTEG.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ble.setDemoType(BLEUtil.DEMO.TEG);
+                ble.parser = new Ratio0_1_0();
+                cbCloud.setChecked(false);
+                cbCloud.setEnabled(false);
+            }
+        });
+
+        rbLab = (RadioButton) this.findViewById(R.id.r_lab);
+        rbLab.setChecked(true);
+        rbLab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setToLabIp();
+            }
+        });
+
+        rbAmazon = (RadioButton) this.findViewById(R.id.r_amazon);
+        rbAmazon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setToAmazonIp();
             }
         });
     }
@@ -280,9 +322,9 @@ public class DisplayActivity extends AppCompatActivity {
          */
         final BatchPoints batchPoints = BatchPoints
                 .database(dbName)
-             //   .tag("async", "true")
+                .tag("async", "true")
                 .retentionPolicy("autogen")
-             //   .consistency(InfluxDB.ConsistencyLevel.ALL)
+                .consistency(InfluxDB.ConsistencyLevel.ALL)
                 .build();
         Point point[] = new Point[14];
 
@@ -343,6 +385,14 @@ public class DisplayActivity extends AppCompatActivity {
                 influxDB.write(dbName, "autogen", point);
             }
         }).start();
-
     }
+
+    private void setToAmazonIp() {
+        this.serverIP = AMAZON_IP;
+    }
+
+    private void setToLabIp() {
+        this.serverIP = LAB_IP;
+    }
+
 }
