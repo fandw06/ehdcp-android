@@ -19,6 +19,7 @@ import com.dawei.assist_ble.parser.Ratio0_1_0;
 import com.dawei.assist_ble.parser.Ratio10_3_1;
 import com.dawei.assist_ble.plot.CalibrateADC;
 import com.dawei.assist_ble.plot.CalibrateAccel;
+import com.dawei.assist_ble.plot.CalibrateVol;
 import com.dawei.assist_ble.plot.DataPlot;
 import com.dawei.assist_ble.plot.PlotConfig;
 
@@ -97,7 +98,7 @@ public class DisplayActivity extends AppCompatActivity {
                 .setXmlID(new int[]{R.xml.ecg_line_point_formatter})
                 .setRedrawFreq(30)
                 .setDomainBoundary(new double[]{0, 200})
-                .setDomainInc(50.0)
+                .setDomainInc(40.0)
                 .setRangeBoundary(new double[]{0, 1.0})
                 .setRangeInc(0.2)
                 .build();
@@ -111,11 +112,11 @@ public class DisplayActivity extends AppCompatActivity {
                 .setXmlID(new int[]{R.xml.vol_line_point_formatter})
                 .setRedrawFreq(30)
                 .setDomainBoundary(new double[]{0, 200})
-                .setDomainInc(50.0)
+                .setDomainInc(40.0)
                 .setRangeBoundary(new double[]{0, 3.0})
                 .setRangeInc(0.5)
                 .build();
-        volPlot = new DataPlot(this, volConfig, new CalibrateADC());
+        volPlot = new DataPlot(this, volConfig, new CalibrateVol());
 
         PlotConfig accelConfig = PlotConfig.builder()
                 .setBytesPerSample(1)

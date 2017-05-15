@@ -4,7 +4,8 @@ package com.dawei.assist_ble.plot;
  * Created by Dawei on 5/5/2017.
  */
 public class CalibrateVol implements Calibrate{
-    private static double FULL_SCALE = 2.8;
+
+    private static double FULL_SCALE = 3.6;
     private static double NUMBER_OF_LEVELS = 256.0;
 
     @Override
