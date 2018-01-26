@@ -1,2 +1,2 @@
-# assist-ble-android
-Android application for ASSIST BLE demo 2017
+# scdpm-android
+Android application for SCDPM 2018
