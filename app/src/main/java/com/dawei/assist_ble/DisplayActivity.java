@@ -3,6 +3,7 @@ package com.dawei.assist_ble;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -28,6 +29,11 @@ import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.text.FieldPosition;
 import java.text.Format;
@@ -39,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 public class DisplayActivity extends AppCompatActivity {
 
     private static final String TAG = "DISPLAY";
+    private static final int REQUEST_EXTERNAL_STORAGE_RW = 1;
     /** Location permission is required when scan BLE devices.*/
     private static final int REQUEST_LOCATION = 0x03;
     public BLEUtil ble;
@@ -52,6 +59,7 @@ public class DisplayActivity extends AppCompatActivity {
     public Button bStream;
     public TextView tInfo;
     public CheckBox cbCloud;
+    public CheckBox cbLocal;
     public RadioButton rbSolar;
     public RadioButton rbString;
     public RadioButton rbTEG;
@@ -62,6 +70,7 @@ public class DisplayActivity extends AppCompatActivity {
     // status
     public boolean isStreaming = false;
     public boolean enabledInfluxDB = false;
+    public boolean enabledLocal = false;
 
     private String serverIP = LAB_IP;
     // Lab PC IP
@@ -71,6 +80,11 @@ public class DisplayActivity extends AppCompatActivity {
 
     private String dbName = "assist";
     public InfluxDB influxDB;
+
+    private static final String DIR = "sap";
+    private PrintWriter accelWriter = null;
+    private PrintWriter ecgWriter = null;
+    private PrintWriter volWriter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +103,6 @@ public class DisplayActivity extends AppCompatActivity {
     }
 
     private void initializePlot() {
-
         PlotConfig ecgConfig = PlotConfig.builder()
                 .setBytesPerSample(1)
                 .setName(new String[]{"ecg"})
@@ -149,6 +162,16 @@ public class DisplayActivity extends AppCompatActivity {
                     }
                 });
                 ble.scanLeDevice(true);
+                Log.d(TAG, "Scan complete");
+                /*
+                hostActivity.bStream.setEnabled(false);
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                hostActivity.bStream.setEnabled(true);
+                */
             }
         });
 
@@ -163,6 +186,8 @@ public class DisplayActivity extends AppCompatActivity {
                     ecgPlot.redrawer.pause();
                     volPlot.redrawer.pause();
                     bStream.setText("Stream");
+                    if (cbLocal.isChecked())
+                        closeWriters();
                 }
                 else {
                     isStreaming = true;
@@ -171,6 +196,8 @@ public class DisplayActivity extends AppCompatActivity {
                     ecgPlot.redrawer.start();
                     volPlot.redrawer.start();
                     bStream.setText("Stop");
+                    if (cbLocal.isChecked())
+                        createWriters();
                 }
             }
         });
@@ -189,6 +216,20 @@ public class DisplayActivity extends AppCompatActivity {
                     Log.d(TAG, "Connecting Influxdb database...");
                     influxDB = InfluxDBFactory.connect("http://" + serverIP +":8086", "root", "root");
                     Log.d(TAG, "Influxdb database is connected!");
+                }
+            }
+        });
+
+        cbLocal = (CheckBox) this.findViewById(R.id.cb_local);
+        cbLocal.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                if (!cbLocal.isChecked()) {
+                    enabledLocal = false;
+                }
+                else {
+                    enabledLocal = true;
                 }
             }
         });
@@ -256,6 +297,16 @@ public class DisplayActivity extends AppCompatActivity {
                         REQUEST_LOCATION);
             }
         }
+        if (ContextCompat.checkSelfPermission(DisplayActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(DisplayActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Log.d(TAG, "Request user to grant write permission");
+            }
+            else {
+                ActivityCompat.requestPermissions(DisplayActivity.this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        REQUEST_EXTERNAL_STORAGE_RW);
+            }
+        }
     }
 
     @Override
@@ -268,6 +319,15 @@ public class DisplayActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(getApplicationContext(), "Location permission is denied.", Toast.LENGTH_LONG).show();
                     Log.d(TAG, "Location permissions is denied!");
+                }
+                break;
+            }
+            case REQUEST_EXTERNAL_STORAGE_RW: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "Write and read permissions are granted.");
+                } else {
+                    Log.d(TAG, "Write and read permissions are denied!");
                 }
                 break;
             }
@@ -370,6 +430,105 @@ public class DisplayActivity extends AppCompatActivity {
         }).start();
     }
 
+    public void saveToFile(byte[] accel, byte[] ecg, byte[] vol) {
+        long timestamp = System.currentTimeMillis();
+        double calAccel[][] = new double[accel.length/3][3];
+        double calEcg[] = new double[ecg.length];
+        double calVol[] = new double[vol.length];
+        long tsAccel[] = new long[accel.length/3];
+        long tsEcg[] = new long[ecg.length];
+        long tsVol[] = new long[vol.length];
+
+        long iAccel = 40;
+        long iEcg = 133;
+        long iVol = 400;
+        /**
+         * Assign sensor value.
+         */
+        for (int i = 0; i<accel.length/3; i++) {
+            calAccel[i] = new double[3];
+            calAccel[i][0] = new CalibrateAccel().calibrate(accel[i*3]);
+            calAccel[i][1] = new CalibrateAccel().calibrate(accel[i*3 + 1]);
+            calAccel[i][2] = new CalibrateAccel().calibrate(accel[i*3 + 2]);
+
+            if (i == 0)
+                tsAccel[i] = timestamp;
+            else
+                tsAccel[i] = tsAccel[i-1] +iAccel;
+            Log.d(TAG, "TS: " + tsAccel[i] + " Value: " + calAccel[i][0] + " " + calAccel[i][1] + " " + calAccel[i][2]);
+        }
+        for (int i = 0; i<ecg.length; i++) {
+            calEcg[i] = new CalibrateADC().calibrate(ecg[i]);
+            if (i == 0)
+                tsEcg[i] = timestamp;
+            else
+                tsEcg[i] = tsEcg[i-1] +iEcg;
+        }
+        for (int i = 0; i<vol.length; i++) {
+            calVol[i] = new CalibrateADC().calibrate(vol[i]);
+            if (i == 0)
+                tsVol[i] = timestamp;
+            else
+                tsVol[i] = tsVol[i-1] +iVol;
+        }
+        /**
+         * Create data points and write to files
+         *
+         */
+        for (int i = 0; i<accel.length/3; i++)
+            accelWriter.println(tsAccel[i] + ", " + calAccel[i][0] + ", " + calAccel[i][1] + ", " + calAccel[i][2]);
+
+        for (int i = 0; i<ecg.length; i++)
+            ecgWriter.println(tsEcg[i] + ", " + calEcg[i]);
+
+        for (int i = 0; i<vol.length; i++)
+            volWriter.println(tsVol[i] + ", " + calVol[i]);
+    }
+
+    private void createWriters() {
+        File FILES_DIR = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), DIR);
+        if (!FILES_DIR.exists()) {
+            boolean created = FILES_DIR.mkdirs();
+            if (created)
+                Log.d(TAG, "Create a new dir.");
+            else
+                Log.d(TAG, "Cannot create " + FILES_DIR.toString());
+        }
+        Log.d(TAG, "Creating local directory...");
+        File local = new File(FILES_DIR, Long.toString(System.currentTimeMillis()));
+        if (!local.mkdir()) {
+            Log.w("LocalDir", "Local directory is not created!");
+        }
+        Log.d(TAG, "Creating local directory for current session...");
+        try {
+            accelWriter = new PrintWriter(
+                    new BufferedWriter(
+                            new FileWriter(
+                                    new File(local, "accel.csv"), true)));
+            ecgWriter = new PrintWriter(
+                    new BufferedWriter(
+                            new FileWriter(
+                                    new File(local, "ecg.csv"), true)));
+            volWriter = new PrintWriter(
+                    new BufferedWriter(
+                            new FileWriter(
+                                    new File(local, "vol.csv"), true)));
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        Log.d(TAG, "Files are created!");
+    }
+
+    private void closeWriters() {
+        if (accelWriter != null)
+            accelWriter.close();
+        if (volWriter != null)
+            volWriter.close();
+        if (ecgWriter != null)
+            ecgWriter.close();
+    }
 
     public void writeInfluxDB(final String name, final byte data[]) {
         new Thread(new Runnable() {

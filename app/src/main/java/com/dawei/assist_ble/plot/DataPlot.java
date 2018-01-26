@@ -1,5 +1,7 @@
 package com.dawei.assist_ble.plot;
 
+import android.util.Log;
+
 import com.androidplot.util.Redrawer;
 import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
@@ -63,6 +65,7 @@ public class DataPlot {
                     dataList[i],
                     SimpleXYSeries.ArrayFormat.Y_VALS_ONLY,
                     config.NAME[i]);
+            Log.d("DEBUG", String.valueOf(config.XML_ID[i]));
             LineAndPointFormatter format = new LineAndPointFormatter(this.hostActivity, config.XML_ID[i]);
             xyPlot.addSeries(dataSeries[i], format);
         }

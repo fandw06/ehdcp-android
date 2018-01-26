@@ -229,6 +229,9 @@ public class BLEUtil {
                     Log.d(TAG, "Prepare to write to InfluxDB...");
                     hostActivity.uploadCloud(accelData, ecgData, volData);
                 }
+                if (hostActivity.enabledLocal) {
+                    hostActivity.saveToFile(accelData, ecgData, volData);
+                }
             }
         }
     };

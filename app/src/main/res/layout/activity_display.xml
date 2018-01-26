@@ -9,7 +9,9 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.dawei.assist_ble.DisplayActivity">
+    tools:context="com.dawei.assist_ble.DisplayActivity"
+    android:id="@+id/linearLayout">
+
 
     <ScrollView
         android:id="@+id/scrollView1"
@@ -17,83 +19,141 @@
         android:layout_height="match_parent"
         android:fillViewport="false">
 
-        <LinearLayout
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
             android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/ap_black">
 
-            <LinearLayout
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
                 android:orientation="horizontal"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal">
+                android:background="@color/ap_black">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Demo type"
                     android:textColor="@color/white"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentStart="true"
-                    android:id="@+id/txt_type" />
+                    android:id="@+id/txt_type"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
 
-                <RadioGroup android:layout_width="wrap_content"
+                <RadioGroup
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingRight="3dp"
-                    android:id="@+id/r_group">
+                    android:orientation="horizontal">
 
-                    <RadioButton
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Solar"
-                        android:textColor="@color/white"
-                        android:theme="@style/MyRadioButton"
-                        android:id="@+id/r_solar" />
+                        <RadioButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Solar"
+                            android:textColor="@color/white"
+                            android:theme="@style/MyRadioButton"
+                            android:id="@+id/r_solar"
+                            tools:layout_conversion_absoluteHeight="0dp"
+                            tools:layout_editor_absoluteY="0dp"
+                            tools:layout_editor_absoluteX="0dp"
+                            tools:layout_conversion_absoluteWidth="0dp" />
 
-                    <RadioButton
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="String"
-                        android:textColor="@color/white"
-                        android:theme="@style/MyRadioButton"
-                        android:id="@+id/r_string" />
+                        <RadioButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="String"
+                            android:textColor="@color/white"
+                            android:theme="@style/MyRadioButton"
+                            android:id="@+id/r_string"
+                            tools:layout_conversion_absoluteHeight="0dp"
+                            tools:layout_editor_absoluteY="0dp"
+                            tools:layout_editor_absoluteX="0dp"
+                            tools:layout_conversion_absoluteWidth="0dp" />
 
-                    <RadioButton
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="TEG"
-                        android:textColor="@color/white"
-                        android:theme="@style/MyRadioButton"
-                        android:id="@+id/r_teg" />
+                        <RadioButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TEG"
+                            android:textColor="@color/white"
+                            android:theme="@style/MyRadioButton"
+                            android:id="@+id/r_teg"
+                            tools:layout_conversion_absoluteHeight="0dp"
+                            tools:layout_editor_absoluteY="0dp"
+                            tools:layout_editor_absoluteX="0dp"
+                            tools:layout_conversion_absoluteWidth="0dp" />
                 </RadioGroup>
+            </LinearLayout>
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/ap_black">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Data store"
+                    android:textColor="@color/white"
+                    android:id="@+id/txt_data"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
+
                 <CheckBox
-                    android:layout_width="90dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Save to file"
+                    android:textColor="@color/white"
+                    android:buttonTint="@color/ap_white"
+                    android:id="@+id/cb_local"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
+                <CheckBox
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Cloud"
                     android:textColor="@color/white"
                     android:buttonTint="@color/ap_white"
-                    android:id="@+id/cb_cloud" />
+                    android:id="@+id/cb_cloud"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
             </LinearLayout>
 
-            <LinearLayout
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
                 android:orientation="horizontal"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal">
+                android:background="@color/ap_black">
 
                 <Button
                     style="?android:attr/buttonStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Scan"
-                    android:id="@+id/scan" />
-
+                    android:id="@+id/scan"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
                 <Button
                     style="?android:attr/buttonStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Stream"
-                    android:id="@+id/stream" />
+                    android:id="@+id/stream"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
             </LinearLayout>
 
             <TextView
@@ -101,27 +161,49 @@
                 android:layout_height="wrap_content"
                 android:text="Press to scan to discover ASSIST device"
                 android:textColor="@color/white"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true"
-                android:id="@+id/txt_info" />
+                android:id="@+id/txt_info"
+                tools:layout_conversion_absoluteHeight="0dp"
+                tools:layout_editor_absoluteY="0dp"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_conversion_absoluteWidth="0dp" />
 
-            <include layout="@layout/graph_accel_stream"/>
-            <include layout="@layout/graph_ecg_stream"/>
-            <include layout="@layout/graph_vol_stream"/>
-
-            <RadioGroup android:layout_width="wrap_content"
+            <include layout="@layout/graph_accel_stream"
+                tools:layout_conversion_absoluteHeight="0dp"
+                tools:layout_editor_absoluteY="0dp"
+                tools:layout_editor_absoluteX="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingRight="3dp"
-                android:id="@+id/r_cloud">
+                tools:layout_conversion_absoluteWidth="0dp"
+                android:layout_width="wrap_content" />
+            <include layout="@layout/graph_ecg_stream"
+                tools:layout_conversion_absoluteHeight="0dp"
+                tools:layout_editor_absoluteY="0dp"
+                tools:layout_editor_absoluteX="0dp"
+                android:layout_height="wrap_content"
+                tools:layout_conversion_absoluteWidth="0dp"
+                android:layout_width="wrap_content" />
+            <include layout="@layout/graph_vol_stream"
+                tools:layout_conversion_absoluteHeight="0dp"
+                tools:layout_editor_absoluteY="0dp"
+                tools:layout_editor_absoluteX="0dp"
+                android:layout_height="wrap_content"
+                tools:layout_conversion_absoluteWidth="0dp"
+                android:layout_width="wrap_content" />
 
+            <RadioGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
                 <RadioButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Amazon server"
                     android:textColor="@color/white"
                     android:theme="@style/MyRadioButton"
-                    android:id="@+id/r_amazon" />
+                    android:id="@+id/r_amazon"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
 
                 <RadioButton
                     android:layout_width="wrap_content"
@@ -129,9 +211,12 @@
                     android:text="Lab server"
                     android:textColor="@color/white"
                     android:theme="@style/MyRadioButton"
-                    android:id="@+id/r_lab" />
+                    android:id="@+id/r_lab"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
             </RadioGroup>
         </LinearLayout>
-
     </ScrollView>
 </LinearLayout>
