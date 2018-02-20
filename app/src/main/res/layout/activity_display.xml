@@ -9,7 +9,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.dawei.assist_ble.DisplayActivity"
+    tools:context="com.dawei.scdpm.DisplayActivity"
     android:id="@+id/linearLayout">
 
 
@@ -32,72 +32,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@color/ap_black">
-                <TextView
+
+                <Button
+                    style="?android:attr/buttonStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Demo type"
-                    android:textColor="@color/white"
-                    android:id="@+id/txt_type"
+                    android:text="Scan"
+                    android:id="@+id/scan"
                     tools:layout_conversion_absoluteHeight="0dp"
                     tools:layout_editor_absoluteY="0dp"
                     tools:layout_editor_absoluteX="0dp"
                     tools:layout_conversion_absoluteWidth="0dp" />
-
-                <RadioGroup
+                <Button
+                    style="?android:attr/buttonStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                        <RadioButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Solar"
-                            android:textColor="@color/white"
-                            android:theme="@style/MyRadioButton"
-                            android:id="@+id/r_solar"
-                            tools:layout_conversion_absoluteHeight="0dp"
-                            tools:layout_editor_absoluteY="0dp"
-                            tools:layout_editor_absoluteX="0dp"
-                            tools:layout_conversion_absoluteWidth="0dp" />
-
-                        <RadioButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="String"
-                            android:textColor="@color/white"
-                            android:theme="@style/MyRadioButton"
-                            android:id="@+id/r_string"
-                            tools:layout_conversion_absoluteHeight="0dp"
-                            tools:layout_editor_absoluteY="0dp"
-                            tools:layout_editor_absoluteX="0dp"
-                            tools:layout_conversion_absoluteWidth="0dp" />
-
-                        <RadioButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="TEG"
-                            android:textColor="@color/white"
-                            android:theme="@style/MyRadioButton"
-                            android:id="@+id/r_teg"
-                            tools:layout_conversion_absoluteHeight="0dp"
-                            tools:layout_editor_absoluteY="0dp"
-                            tools:layout_editor_absoluteX="0dp"
-                            tools:layout_conversion_absoluteWidth="0dp" />
-                </RadioGroup>
-            </LinearLayout>
-
-            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@color/ap_black">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Data store"
-                    android:textColor="@color/white"
-                    android:id="@+id/txt_data"
+                    android:text="Stream"
+                    android:id="@+id/stream"
                     tools:layout_conversion_absoluteHeight="0dp"
                     tools:layout_editor_absoluteY="0dp"
                     tools:layout_editor_absoluteX="0dp"
@@ -127,39 +78,10 @@
                     tools:layout_conversion_absoluteWidth="0dp" />
             </LinearLayout>
 
-            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@color/ap_black">
-
-                <Button
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Scan"
-                    android:id="@+id/scan"
-                    tools:layout_conversion_absoluteHeight="0dp"
-                    tools:layout_editor_absoluteY="0dp"
-                    tools:layout_editor_absoluteX="0dp"
-                    tools:layout_conversion_absoluteWidth="0dp" />
-                <Button
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Stream"
-                    android:id="@+id/stream"
-                    tools:layout_conversion_absoluteHeight="0dp"
-                    tools:layout_editor_absoluteY="0dp"
-                    tools:layout_editor_absoluteX="0dp"
-                    tools:layout_conversion_absoluteWidth="0dp" />
-            </LinearLayout>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Press to scan to discover ASSIST device"
+                android:text="Press to scan to discover scdpm device"
                 android:textColor="@color/white"
                 android:id="@+id/txt_info"
                 tools:layout_conversion_absoluteHeight="0dp"
@@ -217,6 +139,78 @@
                     tools:layout_editor_absoluteX="0dp"
                     tools:layout_conversion_absoluteWidth="0dp" />
             </RadioGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Develop zone"
+                android:textColor="@color/white"
+                tools:layout_conversion_absoluteHeight="0dp"
+                tools:layout_editor_absoluteY="0dp"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_conversion_absoluteWidth="0dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sensor info"
+                android:id="@+id/txt_sensor"
+                android:textColor="@color/white"
+                tools:layout_conversion_absoluteHeight="0dp"
+                tools:layout_editor_absoluteY="0dp"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_conversion_absoluteWidth="0dp" />
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/ap_black">
+
+                <EditText
+                    android:layout_width="80dp"
+                    android:layout_height="55dp"
+                    android:textColor="@color/white"
+                    android:id="@+id/txt_conn"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
+
+                <Button
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Conn"
+                    android:id="@+id/change_conn"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
+
+                <EditText
+                    android:layout_width="80dp"
+                    android:layout_height="55dp"
+                    android:textColor="@color/white"
+                    android:id="@+id/txt_sample"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
+
+                <Button
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sample"
+                    android:id="@+id/change_sample"
+                    tools:layout_conversion_absoluteHeight="0dp"
+                    tools:layout_editor_absoluteY="0dp"
+                    tools:layout_editor_absoluteX="0dp"
+                    tools:layout_conversion_absoluteWidth="0dp" />
+            </LinearLayout>
+
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

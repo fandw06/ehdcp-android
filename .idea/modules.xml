@@ -3,7 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/assist-ble.iml" filepath="$PROJECT_DIR$/assist-ble.iml" />
+      <module fileurl="file://D:\Programming\Android\project\scdpm-android\assist-ble.iml" filepath="D:\Programming\Android\project\scdpm-android\assist-ble.iml" />
+      <module fileurl="file://$PROJECT_DIR$/scdpm-android.iml" filepath="$PROJECT_DIR$/scdpm-android.iml" />
     </modules>
   </component>
 </project>

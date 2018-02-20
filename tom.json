@@ -1,0 +1,16 @@
+{
+  "name": "Tom",
+  "birthday": "1940-02-10",
+  "age": 76,
+  "married": false,
+  "car": null,
+  "favorite_foods": [
+    "cookie",
+    "chips",
+    "fish"
+  ],
+  "passport": {
+    "id": 100001,
+    "nationality": "American"
+  }
+}
