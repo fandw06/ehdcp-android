@@ -9,6 +9,8 @@ import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.StepMode;
 import com.androidplot.xy.XYPlot;
 import com.dawei.scdpm.DisplayActivity;
+import com.dawei.scdpm.calibrate.Calibrate;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,36 +25,32 @@ public class DataPlot {
     private XYPlot xyPlot;
     private List<Number> dataList[];
     private SimpleXYSeries dataSeries[];
-    private Calibrate calibrate;
     public Redrawer redrawer;
 
-    public DataPlot(DisplayActivity hostActivity, PlotConfig config, Calibrate calibrate) {
+    public DataPlot(DisplayActivity hostActivity, PlotConfig config) {
         this.hostActivity = hostActivity;
         this.config = config;
-        this.calibrate = calibrate;
         initializePlot();
         redrawer = new Redrawer(xyPlot, config.REDRAW_FREQ, true);
     }
 
-    public void updateDataSeries(byte raw[]){
-        int len = raw.length;
-        if (len == 0 || len % config.BYTES_PER_SAMPLE != 0)
-            return;
-        int samples = len / config.BYTES_PER_SAMPLE;
-        if (len % config.NUMBER_OF_SERIES != 0)
+    public void updateDataSeries(double val[]){
+        int samples = val.length;
+        if (samples % config.NUMBER_OF_SERIES != 0)
             return;
         int points = samples / config.NUMBER_OF_SERIES;
         for (int i = 0; i < points; i++) {
             for (int j = 0; j < config.NUMBER_OF_SERIES; j++) {
-                double data = calibrate.calibrate(
-                        Arrays.copyOfRange(raw,
-                                (i * config.NUMBER_OF_SERIES + j) * config.BYTES_PER_SAMPLE,
-                                (i * config.NUMBER_OF_SERIES + j) * config.BYTES_PER_SAMPLE + config.BYTES_PER_SAMPLE));
+                double data = val[i * config.NUMBER_OF_SERIES + j];
                 if (dataSeries[j].size() == config.DOMAIN_BOUNDARY[1])
                     dataSeries[j].removeFirst();
                 dataSeries[j].addLast(config.DOMAIN_BOUNDARY[1], data);
             }
         }
+    }
+
+    public void clear() {
+        xyPlot.clear();
     }
 
     private void initializePlot() {

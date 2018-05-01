@@ -7,7 +7,7 @@
 
     <com.androidplot.xy.XYPlot
         style="@style/APDefacto.Dark"
-        android:id="@+id/plot_vol"
+        android:id="@+id/plot_temp"
         android:background="#ffffffff"
         android:layout_width="fill_parent"
         android:layout_height="180dip"
@@ -15,11 +15,11 @@
         android:layout_marginTop="1.0dip"
         android:layout_marginRight="1.0dip"
 
-        ap:title="Voltage"
+        ap:title="Temperature"
         ap:titleTextSize="15dp"
         ap:domainTitle="Time"
         ap:domainTitleTextSize="10dp"
-        ap:rangeTitle="v"
+        ap:rangeTitle="Celsius"
         ap:rangeTitleTextSize="10dp"
 
         ap:lineLabels="left|bottom"

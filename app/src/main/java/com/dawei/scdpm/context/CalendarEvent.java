@@ -3,10 +3,6 @@ package com.dawei.scdpm.context;
 import android.database.Cursor;
 import android.provider.CalendarContract;
 
-/**
- * Created by Dawei on 2/19/2018.
- */
-
 public class CalendarEvent {
 
     public int id;

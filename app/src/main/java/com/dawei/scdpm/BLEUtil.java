@@ -17,7 +17,19 @@ import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 
-import com.dawei.scdpm.parser.Parser;
+import com.dawei.scdpm.calibrate.Calibrate;
+import com.dawei.scdpm.calibrate.CalibrateADC;
+import com.dawei.scdpm.calibrate.CalibrateAccel;
+import com.dawei.scdpm.calibrate.CalibrateLight;
+import com.dawei.scdpm.calibrate.CalibrateTemp;
+import com.dawei.scdpm.scheme.Scheme0;
+import com.dawei.scdpm.scheme.Scheme;
+import com.dawei.scdpm.scheme.Scheme1;
+import com.dawei.scdpm.scheme.Scheme2;
+import com.dawei.scdpm.scheme.Scheme3;
+import com.dawei.scdpm.scheme.Scheme4;
+import com.dawei.scdpm.scheme.SensorData;
+import com.dawei.scdpm.scheme.SensorTimeStamp;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -41,8 +53,20 @@ public class BLEUtil implements Command{
     // 10s scanning
     private static final long SCAN_PERIOD = 10000;
 
-    public Parser parser;
+    public Scheme scheme;
+    // Scheme number
+    public int schemeNum = 3;
+    // Sampling rate of BASE, unit is 10ms.
+    public double sr = 2.0;
 
+    /**
+     *  Connection interval, unit is ms.
+     *  The maximum conn is 4 * scheme.points[ECG] * sr * 10, that is maximum 4 packets in each packet.
+     *  Longer conn will lead to scdpm to crash, so set the factor as 3.5 to be safe.
+     */
+    public double conn = 200;
+
+    //BLE characteristics
     private final static String UUID_SCDPM_SERVICE = "edfec62e-9910-0bac-5241-d8bda6932a2f";
     private final static String UUID_CONTROL_CHAR = "00000000-0000-0000-0000-000000000001";
     private final static String UUID_SENSOR_CHAR = "00000000-0000-0000-0000-000000000002";
@@ -65,6 +89,7 @@ public class BLEUtil implements Command{
         else
             Log.d(TAG, "BLE is available!");
         mHandler = new Handler();
+        setSchemeNum(schemeNum);
     }
 
     private final ScanCallback mScanCallback = new ScanCallback() {
@@ -206,32 +231,34 @@ public class BLEUtil implements Command{
         @Override
         public void onCharacteristicChanged (BluetoothGatt gatt,
                                              BluetoothGattCharacteristic characteristic) {
-
+            // Raw 20B received from SCDPM platform.
+            // Due to the limitation of Android, a maximum of 20B is permitted each packet.
             byte[] value = characteristic.getValue();
             Log.d(TAG, "Raw data array: " + Arrays.toString(value));
-            /*
-            byte[] ecgData = parser.getEcgBytes(value);
-            byte[] accelData = parser.getAccelBytes(value);
-            byte[] volData = parser.getVolBytes(value);
+
+            scheme.processData(value);
+            Log.d("TS", String.valueOf(System.currentTimeMillis()));
+            SensorData sensorData = scheme.getSensorData();
+            Log.d(TAG, "ECG: " + Arrays.toString(sensorData.ecg));
+            Log.d(TAG, "Acc: " + Arrays.toString(sensorData.accel));
+            Log.d(TAG, "Vol: " + Arrays.toString(sensorData.vol));
+            Log.d(TAG, "Temp: " + Arrays.toString(sensorData.temp));
+            Log.d(TAG, "Light: " + Arrays.toString(sensorData.light));
+
+            SensorTimeStamp sensorTs = new SensorTimeStamp(sensorData, scheme.points, sr);
 
             if (characteristic.getUuid().toString().equals(UUID_SENSOR_CHAR)) {
-                Log.d(TAG, "Accel chars changed! " + Arrays.toString(accelData));
-                Log.d(TAG, "ECG chars changed! " + Arrays.toString(ecgData));
-                Log.d(TAG, "Vol chars changed! " + Arrays.toString(volData));
                 if (hostActivity.isStreaming) {
-                    hostActivity.accelPlot.updateDataSeries(accelData);
-                    hostActivity.ecgPlot.updateDataSeries(ecgData);
-                    hostActivity.volPlot.updateDataSeries(volData);
+                    hostActivity.updatePlots(sensorData);
                 }
                 if (hostActivity.enabledInfluxDB && hostActivity.influxDB != null) {
                     Log.d(TAG, "Prepare to write to InfluxDB...");
-                    hostActivity.uploadCloud(accelData, ecgData, volData);
+                    hostActivity.uploadCloud(sensorData, sensorTs);
                 }
                 if (hostActivity.enabledLocal) {
-                    hostActivity.saveToFile(accelData, ecgData, volData);
+                    hostActivity.saveToFile(sensorData, sensorTs);
                 }
             }
-            */
         }
     };
 
@@ -258,6 +285,7 @@ public class BLEUtil implements Command{
     public void connectToDevice(BluetoothDevice device) {
         if (mGatt == null) {
             mGatt = device.connectGatt(hostActivity, false, gattCallback);
+            mGatt.requestMtu(21);
         }
     }
 
@@ -272,6 +300,28 @@ public class BLEUtil implements Command{
         }
     }
 
+    public void setSchemeNum(int i) {
+        this.schemeNum = i;
+        switch(this.schemeNum) {
+            case 0:
+                this.scheme = new Scheme0();
+                break;
+            case 1:
+                this.scheme = new Scheme1();
+                break;
+            case 2:
+                this.scheme = new Scheme2();
+                break;
+            case 3:
+                this.scheme = new Scheme3();
+                break;
+            case 4:
+                this.scheme = new Scheme4();
+                break;
+            default:
+                break;
+        }
+    }
 
     public void startStreaming() {
         byte cmd[] = {STREAM, START};
@@ -303,5 +353,18 @@ public class BLEUtil implements Command{
         byte low = (byte)(intv & 0xFF);
         byte cmd[] = {CHANGE_SR, sensor, high, low};
         sendCommand("CHANGE_SR", cmd);
+        this.sr = intv;
     }
+
+    public void changeScheme(int s) {
+        // Clear previous plots
+        //hostActivity.clearPlots();
+        byte cmd[] = {CHANGE_SCHEME, (byte)s};
+        this.schemeNum = s;
+        setSchemeNum(schemeNum);
+        Log.d(TAG, "Sent: " + Arrays.toString(cmd));
+        sendCommand("CHANGE_SCHEME", cmd);
+
+    }
+
 }

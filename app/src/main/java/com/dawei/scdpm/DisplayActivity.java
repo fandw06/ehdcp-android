@@ -25,11 +25,10 @@ import android.widget.Toast;
 
 import com.dawei.scdpm.context.CalendarEvent;
 import com.dawei.scdpm.context.ContextManager;
-import com.dawei.scdpm.plot.CalibrateADC;
-import com.dawei.scdpm.plot.CalibrateAccel;
-import com.dawei.scdpm.plot.CalibrateVol;
 import com.dawei.scdpm.plot.DataPlot;
 import com.dawei.scdpm.plot.PlotConfig;
+import com.dawei.scdpm.scheme.SensorData;
+import com.dawei.scdpm.scheme.SensorTimeStamp;
 
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
@@ -41,7 +40,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +57,8 @@ public class DisplayActivity extends AppCompatActivity {
     public DataPlot accelPlot;
     public DataPlot ecgPlot;
     public DataPlot volPlot;
+    public DataPlot tempPlot;
+    public DataPlot lightPlot;
 
     // Components
     public Button bScan;
@@ -72,8 +72,10 @@ public class DisplayActivity extends AppCompatActivity {
 
     public EditText etConn;
     public EditText etSample;
+    public EditText etScheme;
     public Button bChangeConn;
     public Button bChangeSample;
+    public Button bChangeScheme;
 
     public TextView tSensor;
 
@@ -95,6 +97,8 @@ public class DisplayActivity extends AppCompatActivity {
     private PrintWriter accelWriter = null;
     private PrintWriter ecgWriter = null;
     private PrintWriter volWriter = null;
+    private PrintWriter tempWriter = null;
+    private PrintWriter lightWriter = null;
 
     //Sensor
     private SensorManager mSensorManager;
@@ -121,7 +125,6 @@ public class DisplayActivity extends AppCompatActivity {
 
     private void initializePlot() {
         PlotConfig ecgConfig = PlotConfig.builder()
-                .setBytesPerSample(1)
                 .setName(new String[]{"ecg"})
                 .setNumOfSeries(1)
                 .setResID(R.id.plot_ecg)
@@ -129,13 +132,12 @@ public class DisplayActivity extends AppCompatActivity {
                 .setRedrawFreq(30)
                 .setDomainBoundary(new double[]{0, 200})
                 .setDomainInc(40.0)
-                .setRangeBoundary(new double[]{0, 1.0})
+                .setRangeBoundary(new double[]{0, 1.})
                 .setRangeInc(0.2)
                 .build();
-        ecgPlot = new DataPlot(this, ecgConfig, new CalibrateADC());
+        ecgPlot = new DataPlot(this, ecgConfig);
 
         PlotConfig volConfig = PlotConfig.builder()
-                .setBytesPerSample(1)
                 .setName(new String[]{"vol"})
                 .setNumOfSeries(1)
                 .setResID(R.id.plot_vol)
@@ -143,13 +145,12 @@ public class DisplayActivity extends AppCompatActivity {
                 .setRedrawFreq(30)
                 .setDomainBoundary(new double[]{0, 200})
                 .setDomainInc(40.0)
-                .setRangeBoundary(new double[]{0, 3.0})
+                .setRangeBoundary(new double[]{0, 4.0})
                 .setRangeInc(0.5)
                 .build();
-        volPlot = new DataPlot(this, volConfig, new CalibrateVol());
+        volPlot = new DataPlot(this, volConfig);
 
         PlotConfig accelConfig = PlotConfig.builder()
-                .setBytesPerSample(1)
                 .setName(new String[]{"x", "y", "z"})
                 .setNumOfSeries(3)
                 .setResID(R.id.plot_accel)
@@ -160,7 +161,34 @@ public class DisplayActivity extends AppCompatActivity {
                 .setRangeBoundary(new double[]{-2.0, 2.0})
                 .setRangeInc(0.5)
                 .build();
-        accelPlot = new DataPlot(this, accelConfig, new CalibrateAccel());
+        accelPlot = new DataPlot(this, accelConfig);
+
+        PlotConfig tempConfig = PlotConfig.builder()
+                .setName(new String[]{"temperature"})
+                .setNumOfSeries(1)
+                .setResID(R.id.plot_temp)
+                .setXmlID(new int[]{R.xml.vol_line_point_formatter})
+                .setRedrawFreq(30)
+                .setDomainBoundary(new double[]{0, 200})
+                .setDomainInc(40.0)
+                .setRangeBoundary(new double[]{-10, 40})
+                .setRangeInc(10)
+                .build();
+        tempPlot = new DataPlot(this, tempConfig);
+
+        PlotConfig lightConfig = PlotConfig.builder()
+                .setName(new String[]{"light"})
+                .setNumOfSeries(1)
+                .setResID(R.id.plot_light)
+                .setXmlID(new int[]{R.xml.vol_line_point_formatter})
+                .setRedrawFreq(30)
+                .setDomainBoundary(new double[]{0, 200})
+                .setDomainInc(40.0)
+                .setRangeBoundary(new double[]{0, 10000})
+                .setRangeInc(2500)
+                .build();
+        lightPlot = new DataPlot(this, lightConfig);
+
     }
 
     private void initializeComponents() {
@@ -261,8 +289,10 @@ public class DisplayActivity extends AppCompatActivity {
         //debug
         etConn = (EditText) this.findViewById(R.id.txt_conn);
         etSample = (EditText) this.findViewById(R.id.txt_sample);
+        etScheme = (EditText) this.findViewById(R.id.txt_scheme);
         bChangeConn = (Button) this.findViewById(R.id.change_conn);
         bChangeSample = (Button) this.findViewById(R.id.change_sample);
+        bChangeScheme = (Button) this.findViewById(R.id.change_scheme);
         bChangeConn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -275,6 +305,14 @@ public class DisplayActivity extends AppCompatActivity {
             public void onClick(View view) {
                 int val = Integer.valueOf(etSample.getText().toString());
                 ble.changeSamplingRate((byte)1, val);
+            }
+        });
+        bChangeScheme.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int val = Integer.valueOf(etScheme.getText().toString());
+                if (val >= 0 && val <= 4)
+                    ble.changeScheme(val);
             }
         });
 
@@ -400,47 +438,36 @@ public class DisplayActivity extends AppCompatActivity {
         }
     }
 
-    public void uploadCloud(byte[] accel, byte[] ecg, byte[] vol) {
-        long timestamp = System.currentTimeMillis();
-        double calAccel[][] = new double[accel.length/3][3];
-        double calEcg[] = new double[ecg.length];
-        double calVol[] = new double[vol.length];
-        long tsAccel[] = new long[accel.length/3];
-        long tsEcg[] = new long[ecg.length];
-        long tsVol[] = new long[vol.length];
+    public void updatePlots(SensorData sd) {
+        accelPlot.updateDataSeries(sd.accel);
+        ecgPlot.updateDataSeries(sd.ecg);
+        volPlot.updateDataSeries(sd.vol);
+        tempPlot.updateDataSeries(sd.temp);
+        lightPlot.updateDataSeries(sd.light);
+    }
 
-        long iAccel = 40;
-        long iEcg = 133;
-        long iVol = 400;
-        /**
-         * Assign sensor value.
-         */
-        for (int i = 0; i<accel.length/3; i++) {
-            calAccel[i] = new double[3];
-            calAccel[i][0] = new CalibrateAccel().calibrate(accel[i*3]);
-            calAccel[i][1] = new CalibrateAccel().calibrate(accel[i*3 + 1]);
-            calAccel[i][2] = new CalibrateAccel().calibrate(accel[i*3 + 2]);
+    public void clearPlots() {
+        accelPlot.clear();
+        ecgPlot.clear();
+        volPlot.clear();
+        tempPlot.clear();
+        lightPlot.clear();
+    }
 
-            if (i == 0)
-                tsAccel[i] = timestamp;
-            else
-                tsAccel[i] = tsAccel[i-1] +iAccel;
-            Log.d(TAG, "TS: " + tsAccel[i] + " Value: " + calAccel[i][0] + " " + calAccel[i][1] + " " + calAccel[i][2]);
-        }
-        for (int i = 0; i<ecg.length; i++) {
-            calEcg[i] = new CalibrateADC().calibrate(ecg[i]);
-            if (i == 0)
-                tsEcg[i] = timestamp;
-            else
-                tsEcg[i] = tsEcg[i-1] +iEcg;
-        }
-        for (int i = 0; i<vol.length; i++) {
-            calVol[i] = new CalibrateADC().calibrate(vol[i]);
-            if (i == 0)
-                tsVol[i] = timestamp;
-            else
-                tsVol[i] = tsVol[i-1] +iVol;
-        }
+    public void uploadCloud(SensorData sd, SensorTimeStamp ss) {
+        // sensor data
+        double ecg[] = sd.ecg;
+        double accel[] = sd.accel;
+        double vol[] = sd.vol;
+        double temp[] = sd.temp;
+        double light[] = sd.light;
+        // sensor timestamp
+        long tsEcg[] = ss.tsEcg;
+        long tsAccel[] = ss.tsAccel;
+        long tsVol[] = ss.tsVol;
+        long tsTemp[] = ss.tsTemp;
+        long tsLight[] = ss.tsLight;
+
         /**
          * Create data points and write to InfluxDB
          *
@@ -451,41 +478,66 @@ public class DisplayActivity extends AppCompatActivity {
                 .retentionPolicy("autogen")
                 .consistency(InfluxDB.ConsistencyLevel.ALL)
                 .build();
-        Point point[] = new Point[14];
 
+        int number = accel.length/3 + ecg.length + vol.length + temp.length + light.length;
+        Point point[] = new Point[number];
+
+        int prevLength = 0;
         for (int i = 0; i<accel.length/3; i++) {
             Map<String, Object> fields = new HashMap<>();
-
-            fields.put("acc-x", calAccel[i][0]);
-            fields.put("acc-y", calAccel[i][1]);
-            fields.put("acc-z", calAccel[i][2]);
+            fields.put("acc-x", accel[i * 3]);
+            fields.put("acc-y", accel[i * 3 + 1]);
+            fields.put("acc-z", accel[i * 3 + 2]);
             point[i] = Point.measurement("ACCEL")
                     .time(tsAccel[i], TimeUnit.MILLISECONDS)
                     .fields(fields)
                     .build();
             batchPoints.point(point[i]);
         }
+        prevLength += accel.length/3;
 
         for (int i = 0; i<ecg.length; i++) {
             Map<String, Object> fields = new HashMap<>();
-            fields.put("v", calEcg[i]);
-            point[i + accel.length/3] = Point.measurement("ECG")
+            fields.put("ecg", ecg[i]);
+            point[i +prevLength] = Point.measurement("ECG")
                     .time(tsEcg[i], TimeUnit.MILLISECONDS)
                     .fields(fields)
                     .build();
-            batchPoints.point(point[i + accel.length/3]);
+            batchPoints.point(point[i + prevLength]);
         }
+        prevLength += ecg.length;
 
         for (int i = 0; i<vol.length; i++) {
             Map<String, Object> fields = new HashMap<>();
-            fields.put("v", calVol[i]);
-            point[i + accel.length/3 + ecg.length] = Point.measurement("VOL")
+            fields.put("vol", vol[i]);
+            point[i + prevLength] = Point.measurement("VOL")
                     .time(tsVol[i], TimeUnit.MILLISECONDS)
                     .fields(fields)
                     .build();
-            batchPoints.point(point[i + accel.length/3 + ecg.length]);
+            batchPoints.point(point[i + prevLength]);
         }
+        prevLength += vol.length;
 
+        for (int i = 0; i<temp.length; i++) {
+            Map<String, Object> fields = new HashMap<>();
+            fields.put("degree", temp[i]);
+            point[i + prevLength] = Point.measurement("TEMP")
+                    .time(tsTemp[i], TimeUnit.MILLISECONDS)
+                    .fields(fields)
+                    .build();
+            batchPoints.point(point[i + prevLength]);
+        }
+        prevLength += temp.length;
+
+        for (int i = 0; i<light.length; i++) {
+            Map<String, Object> fields = new HashMap<>();
+            fields.put("v", light[i]);
+            point[i + prevLength] = Point.measurement("LIGHT")
+                    .time(tsLight[i], TimeUnit.MILLISECONDS)
+                    .fields(fields)
+                    .build();
+            batchPoints.point(point[i + prevLength]);
+        }
 
         new Thread(new Runnable() {
             public void run() {
@@ -494,59 +546,43 @@ public class DisplayActivity extends AppCompatActivity {
         }).start();
     }
 
-    public void saveToFile(byte[] accel, byte[] ecg, byte[] vol) {
-        long timestamp = System.currentTimeMillis();
-        double calAccel[][] = new double[accel.length/3][3];
-        double calEcg[] = new double[ecg.length];
-        double calVol[] = new double[vol.length];
-        long tsAccel[] = new long[accel.length/3];
-        long tsEcg[] = new long[ecg.length];
-        long tsVol[] = new long[vol.length];
+    public void saveToFile(SensorData sd, SensorTimeStamp ss) {
 
-        long iAccel = 40;
-        long iEcg = 133;
-        long iVol = 400;
-        /**
-         * Assign sensor value.
-         */
-        for (int i = 0; i<accel.length/3; i++) {
-            calAccel[i] = new double[3];
-            calAccel[i][0] = new CalibrateAccel().calibrate(accel[i*3]);
-            calAccel[i][1] = new CalibrateAccel().calibrate(accel[i*3 + 1]);
-            calAccel[i][2] = new CalibrateAccel().calibrate(accel[i*3 + 2]);
+        // sensor data
+        final double ecg[] = sd.ecg;
+        final double accel[] = sd.accel;
+        final double vol[] = sd.vol;
+        final double temp[] = sd.temp;
+        final double light[] = sd.light;
+        // sensor timestamp
+        final long tsEcg[] = ss.tsEcg;
+        final long tsAccel[] = ss.tsAccel;
+        final long tsVol[] = ss.tsVol;
+        final long tsTemp[] = ss.tsTemp;
+        final long tsLight[] = ss.tsLight;
 
-            if (i == 0)
-                tsAccel[i] = timestamp;
-            else
-                tsAccel[i] = tsAccel[i-1] +iAccel;
-            Log.d(TAG, "TS: " + tsAccel[i] + " Value: " + calAccel[i][0] + " " + calAccel[i][1] + " " + calAccel[i][2]);
-        }
-        for (int i = 0; i<ecg.length; i++) {
-            calEcg[i] = new CalibrateADC().calibrate(ecg[i]);
-            if (i == 0)
-                tsEcg[i] = timestamp;
-            else
-                tsEcg[i] = tsEcg[i-1] +iEcg;
-        }
-        for (int i = 0; i<vol.length; i++) {
-            calVol[i] = new CalibrateADC().calibrate(vol[i]);
-            if (i == 0)
-                tsVol[i] = timestamp;
-            else
-                tsVol[i] = tsVol[i-1] +iVol;
-        }
-        /**
-         * Create data points and write to files
-         *
-         */
-        for (int i = 0; i<accel.length/3; i++)
-            accelWriter.println(tsAccel[i] + ", " + calAccel[i][0] + ", " + calAccel[i][1] + ", " + calAccel[i][2]);
+        new Thread(new Runnable() {
+            public void run() {
+                /**
+                 * Create data points and write to files
+                 *
+                 */
+                for (int i = 0; i<accel.length/3; i++)
+                    accelWriter.println(tsAccel[i] + ", " + accel[i*3] + ", " + accel[i*3+1] + ", " + accel[i*3+2]);
 
-        for (int i = 0; i<ecg.length; i++)
-            ecgWriter.println(tsEcg[i] + ", " + calEcg[i]);
+                for (int i = 0; i<ecg.length; i++)
+                    ecgWriter.println(tsEcg[i] + ", " + ecg[i]);
 
-        for (int i = 0; i<vol.length; i++)
-            volWriter.println(tsVol[i] + ", " + calVol[i]);
+                for (int i = 0; i<vol.length; i++)
+                    volWriter.println(tsVol[i] + ", " + vol[i]);
+
+                for (int i = 0; i<temp.length; i++)
+                    tempWriter.println(tsTemp[i] + ", " + temp[i]);
+
+                for (int i = 0; i<light.length; i++)
+                    lightWriter.println(tsLight[i] + ", " + light[i]);
+            }
+        }).start();
     }
 
     private void createWriters() {
@@ -578,6 +614,14 @@ public class DisplayActivity extends AppCompatActivity {
                     new BufferedWriter(
                             new FileWriter(
                                     new File(local, "vol.csv"), true)));
+            tempWriter = new PrintWriter(
+                    new BufferedWriter(
+                            new FileWriter(
+                                    new File(local, "temp.csv"), true)));
+            lightWriter = new PrintWriter(
+                    new BufferedWriter(
+                            new FileWriter(
+                                    new File(local, "light.csv"), true)));
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -592,6 +636,10 @@ public class DisplayActivity extends AppCompatActivity {
             volWriter.close();
         if (ecgWriter != null)
             ecgWriter.close();
+        if (tempWriter != null)
+            tempWriter.close();
+        if (lightWriter != null)
+            lightWriter.close();
     }
 
     public void writeInfluxDB(final String name, final byte data[]) {
